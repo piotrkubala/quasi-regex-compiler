@@ -35,9 +35,6 @@
         <groupId>org.antlr</groupId>
         <artifactId>antlr4-maven-plugin</artifactId>
         <version>4.3</version>
-        <configuration>
-          <outputDirectory>${basedir}/src/main/pl/edu/agh/kis/</outputDirectory>
-        </configuration>
         <executions>
           <execution>
             <id>antlr</id>
