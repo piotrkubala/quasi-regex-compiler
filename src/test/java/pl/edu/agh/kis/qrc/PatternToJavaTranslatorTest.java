@@ -7,5 +7,7 @@ public class PatternToJavaTranslatorTest {
     @Test
     public void LoopExprTest() {
         PatternToJavaTranslator translator = new PatternToJavaTranslator("Loop(a, b, c, d)");
+
+        System.out.println(translator.generateCode());
     }
 }
