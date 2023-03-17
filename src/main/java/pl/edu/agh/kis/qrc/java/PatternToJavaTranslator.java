@@ -11,10 +11,8 @@ public class PatternToJavaTranslator extends PatternTranslator{
     }
 
     public String generateCode() {
-        String output = "";
-
         ParseTreeWalker.DEFAULT.walk(listener, patternRoot);
 
-        return output;
+        return listener.getJavaCode();
     }
 }
