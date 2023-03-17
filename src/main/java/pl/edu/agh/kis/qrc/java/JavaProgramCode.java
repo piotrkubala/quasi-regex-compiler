@@ -1,83 +1,105 @@
 package pl.edu.agh.kis.qrc.java;
 
+import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 
 public class JavaProgramCode {
-    StringBuilder outputString = new StringBuilder();
-    StringBuilder currentTabs = new StringBuilder();
-    String tabulatorStr;
+    static class JavaCodeLine {
+        StringBuilder line = new StringBuilder();
+        int numberOfIndentsToGoUp = 0;
 
-    HashSet<String> functionsNames = new HashSet<>();
+        JavaCodeLine nextCodeLine;
+
+        public JavaCodeLine(StringBuilder lineOfCode_, int numberOfIndentsToGoUp_) {
+            line = lineOfCode_;
+            numberOfIndentsToGoUp = numberOfIndentsToGoUp_;
+        }
+    }
+
+    private static int createdFunctionsCounter = 0;
+
+    /**
+     * this 2 variables store references to the beginning and the end of the list of lines of the content of this function (only body)
+     */
+    JavaCodeLine javaLinesFirst;
+    JavaCodeLine javaLinesLast;
+    String indentSymbol;
+
+    String functionName;
+    int functionNumber;
+
+    /**
+     * maps integer (which is function number) to other functions that are used in code of this function
+     * used only to indicate 'real functions' - functions which are going to have code template inside
+     */
+    HashMap<Integer, JavaProgramCode> connectedFunctions = new HashMap<>();
 
     public JavaProgramCode() {
-        tabulatorStr = "    ";
+        indentSymbol = "    ";
 
-        prepareProgram();
+        prepare();
     }
 
-    public JavaProgramCode(String tabulator) {
-        tabulatorStr = tabulator;
+    public JavaProgramCode(String indentString) {
+        indentSymbol = indentString;
 
-        prepareProgram();
+        prepare();
     }
 
-    public void prepareProgram() {
-        outputString.append("public class Program ");
-        openBlock();
-        appendTabs();
-        outputString.append("public void program() ");
-        openBlock();
+    private void prepare() {
+        functionName = "fun" + createdFunctionsCounter;
+        functionNumber = createdFunctionsCounter;
+        createdFunctionsCounter++;
     }
 
-    public void startLoop() {
-        appendTabs();
-        outputString.append("while ");
+    public void AppendLineOfCode(String lineToAppend, int indentChange) {
+        JavaCodeLine newLineOfCode = new JavaCodeLine(new StringBuilder(lineToAppend), indentChange);
+
+        if (javaLinesLast == null) {
+            javaLinesFirst = javaLinesLast = newLineOfCode;
+        } else {
+            javaLinesLast.nextCodeLine = newLineOfCode;
+            javaLinesLast = newLineOfCode;
+        }
     }
 
-    private void appendTabs() {
-        outputString.append(tabulatorStr);
-    }
+    public void AppendCode(JavaProgramCode codeToAppend, boolean indentFirstLine) {
+        int indentChange = indentFirstLine ? 1 : 0;
 
-    private void addToSet(String functionName) {
-        functionsNames.add(functionName);
-    }
+        if (codeToAppend.javaLinesLast == null) {
+            return;
+        }
 
-    public void addBoolFunction(String functionName) {
-        outputString.append(functionName);
-        outputString.append("()");
-        addToSet(functionName);
-    }
+        codeToAppend.javaLinesFirst.numberOfIndentsToGoUp += indentChange;
+        codeToAppend.javaLinesLast.numberOfIndentsToGoUp -= indentChange;
 
-    public void addVoidFunction(String functionName) {
-        appendTabs();
-        outputString.append(functionName);
-        outputString.append("();\n");
-        addToSet(functionName);
-    }
+        if (javaLinesLast == null) {
+            javaLinesFirst = codeToAppend.javaLinesFirst;
+        } else {
+            javaLinesLast.nextCodeLine = codeToAppend.javaLinesFirst;
+        }
 
-    public void openBrackets() {
-        outputString.append("(");
-    }
-
-    public void closeBracket() {
-        outputString.append(")");
-    }
-
-    public void openBlock() {
-        outputString.append("{\n");
-        currentTabs.append(tabulatorStr);
-    }
-
-    public void closeBlock() {
-        outputString.append("\n");
-        appendTabs();
-        outputString.append("}\n");
-        currentTabs.setLength(currentTabs.length() - 1);
+        javaLinesLast = codeToAppend.javaLinesLast;
     }
 
     @Override
     public String toString() {
-        return outputString.toString();
+        StringBuilder output = new StringBuilder();
+        int numberOfIndents = 0;
+
+        JavaCodeLine currentLine = javaLinesFirst;
+
+        while (currentLine != null) {
+            numberOfIndents += currentLine.numberOfIndentsToGoUp;
+            output.append(indentSymbol.repeat(numberOfIndents));
+            output.append(currentLine.line);
+            output.append('\n');
+
+            currentLine = currentLine.nextCodeLine;
+        }
+
+        return output.toString();
     }
 }
