@@ -12,7 +12,6 @@ pattern:
 
         if (expected_number != number_got) {
             // maybe throw an exception here?
-            System.out.println(res);
             throw new RuntimeException(res);
         }
     }
@@ -25,18 +24,41 @@ pattern_name
     ]
     : PATTERN_NAME_LEX {
         switch($text) {
-        case "Loop":
+        case "Seq":
+            $number_of_args = 2;
+            break;
+        case "Branch":
+            $number_of_args = 3;
+            break;
+        case "BranchRe":
+            $number_of_args = 3;
+            break;
+        case "Concur":
+            $number_of_args = 3;
+            break;
+        case "ConcurRe":
+            $number_of_args = 3;
+            break;
+        case "Cond":
             $number_of_args = 4;
             break;
-        case "If":
+        case "Para":
+            $number_of_args = 4;
+            break;
+        case "Loop":
             $number_of_args = 4;
             break;
         case "Choice":
             $number_of_args = 4;
             break;
-        case "Seq":
-            $number_of_args = 2;
+        case "SeqSeq":
+            $number_of_args = 3;
             break;
+        case "Repeat":
+            $number_of_args = 4;
+            break;
+        default:
+            throw new RuntimeException("Unknown pattern name: ");
         }
     }
     ;
