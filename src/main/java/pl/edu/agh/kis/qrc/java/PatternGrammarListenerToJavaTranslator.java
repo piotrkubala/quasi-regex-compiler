@@ -11,11 +11,14 @@ import java.util.List;
 public class PatternGrammarListenerToJavaTranslator extends PatternGrammarBaseListener {
     private List<String> errors = new ArrayList<>();
 
+    private StringBuilder outputString = new StringBuilder();
+    private int currentTabsNumber = 0;
+
     @Override
     public void enterPattern(PatternGrammarParser.PatternContext ctx) {
-        String patternName = ctx.getText();
+        String patternName = ctx.children.get(0).getText();
 
-        System.out.println("Pattern name is: " + patternName);
+        System.out.println(patternName);
     }
 
     @Override
