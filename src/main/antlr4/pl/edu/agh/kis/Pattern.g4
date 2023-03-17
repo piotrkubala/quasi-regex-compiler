@@ -1,4 +1,4 @@
-grammar PatternGrammar;
+grammar Pattern;
 
 /**
     Parser Grammar
