@@ -23,17 +23,6 @@ public class JavaProgramCode {
     }
 
     /**
-     * every created function gets indexed by next natural number
-     */
-    private static int createdFunctionsCounter = 0;
-
-    /**
-     * maps integer (which is function number) to other functions that are used in code of this function
-     */
-    private static HashMap<Integer, JavaProgramCode> allFunctions = new HashMap<>();
-    private static HashMap<String, Integer> atomNameToFuncNumber = new HashMap<>();
-
-    /**
      * this 2 variables store references to the beginning and the end of the list of lines of the content of this function (only body)
      */
     JavaCodeLine javaLinesFirst;
@@ -45,23 +34,30 @@ public class JavaProgramCode {
 
     boolean isBooleanFunction = false;
 
+    JavaProgramClass parentClass;
 
-    public JavaProgramCode() {
+
+    public JavaProgramCode(JavaProgramClass parentClass_) {
         indentSymbol = "    ";
 
-        prepare();
+        prepare(parentClass_);
     }
 
-    public JavaProgramCode(String indentString) {
-        indentSymbol = indentString;
+    public JavaProgramCode(JavaProgramClass parentClass_, String indentString_) {
+        indentSymbol = indentString_;
 
-        prepare();
+        prepare(parentClass_);
     }
 
-    private void prepare() {
-        functionName = "fun" + createdFunctionsCounter + "()";
-        functionNumber = createdFunctionsCounter;
-        createdFunctionsCounter++;
+    private void prepare(JavaProgramClass parentClass_) {
+        parentClass = parentClass_;
+
+        int functionCounter = parentClass.getCreatedFunctionsCounter();
+
+        functionName = "fun" + functionCounter + "()";
+        functionNumber = functionCounter;
+
+        parentClass.addNewMethodByName(functionName);
     }
 
     /**
@@ -74,18 +70,12 @@ public class JavaProgramCode {
     }
 
     public void createNewEmptyFunctionIfNotExistsAndAppendCall(String functionToCallName) {
-        if (!atomNameToFuncNumber.containsKey(functionToCallName)) {
-            atomNameToFuncNumber.put(functionToCallName, createdFunctionsCounter);
+        parentClass.addNewMethodByName(functionToCallName);
 
-            // createdFunctionCounter also gets updated here
-            allFunctions.put(createdFunctionsCounter, new JavaProgramCode());
-
-            appendToLastLineOfCode(functionToCallName);
-        }
+        appendToLastLineOfCode(functionToCallName);
     }
 
     public void addCodeAsFunction(JavaProgramCode code) {
-        allFunctions.put(code.functionNumber, code);
         appendToLastLineOfCode(code.functionName);
     }
 
@@ -123,14 +113,15 @@ public class JavaProgramCode {
 
         javaLinesLast = codeToAppend.javaLinesLast;
 
-        allFunctions.remove(codeToAppend.functionNumber);
+        parentClass.removeFunctionByName(codeToAppend.functionName);
     }
 
-    public StringBuilder getFunctionCodeAsStringBuilder() {
+    public StringBuilder getFunctionCodeAsStringBuilder(int numberOfIndents) {
         StringBuilder output = new StringBuilder();
-        int numberOfIndents = 1;
 
         JavaCodeLine currentLine = javaLinesFirst;
+
+        output.append(indentSymbol.repeat(numberOfIndents));
 
         if (isBooleanFunction) {
             output.append("public static boolean ");
@@ -150,23 +141,14 @@ public class JavaProgramCode {
             currentLine = currentLine.nextCodeLine;
         }
 
-        output.append("}");
+        output.append(indentSymbol.repeat(numberOfIndents));
+        output.append("}\n\n");
 
         return output;
     }
 
     @Override
     public String toString() {
-        return getFunctionCodeAsStringBuilder().toString();
-    }
-
-    public static String printCodeAsClass() {
-        StringBuilder sb = new StringBuilder();
-
-        for (JavaProgramCode code: allFunctions.values()) {
-            sb.append(code.getFunctionCodeAsStringBuilder());
-        }
-
-        return sb.toString();
+        return getFunctionCodeAsStringBuilder(1).toString();
     }
 }

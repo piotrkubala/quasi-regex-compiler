@@ -8,21 +8,27 @@ import java.util.*;
 public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVisitor<JavaProgramCode> {
     private List<String> errors = new ArrayList<>();
 
+    private JavaProgramClass generatedClass = new JavaProgramClass();
+
+    private List<JavaProgramCode> getNArgumentsForPattern(PatternGrammarParser.ArgumentsContext ctx, int n) {
+        List<JavaProgramCode> ans = new ArrayList<>();
+
+        ans.add(visitPattern(ctx.pattern()));
+        for (int i = 0; i < n - 1; i++) {
+            ctx = ctx.args_with_delim.arguments;
+            ans.add(visitPattern(ctx.pattern()));
+        }
+
+        return ans;
+    }
+
     private JavaProgramCode createLoop(PatternGrammarParser.PatternContext ctx) {
-        PatternGrammarParser.ArgumentsContext firstArg = ctx.arguments;
-        PatternGrammarParser.ArgumentsContext secondArg = firstArg.args_with_delim.arguments;
-        PatternGrammarParser.ArgumentsContext thirdArg = secondArg.args_with_delim.arguments;
-        PatternGrammarParser.ArgumentsContext fourthArg = thirdArg.args_with_delim.arguments;
+        List<JavaProgramCode> loopArguments = getNArgumentsForPattern(ctx.arguments, 4);
 
-        PatternGrammarParser.PatternContext firstPattern = firstArg.pattern();
-        PatternGrammarParser.PatternContext secondPattern = secondArg.pattern();
-        PatternGrammarParser.PatternContext thirdPattern = thirdArg.pattern();
-        PatternGrammarParser.PatternContext fourthPattern = fourthArg.pattern();
-
-        JavaProgramCode previousCode = visitPattern(firstPattern);
-        JavaProgramCode conditionCode = visitPattern(secondPattern);
-        JavaProgramCode bodyCode = visitPattern(thirdPattern);
-        JavaProgramCode followingCode = visitPattern(fourthPattern);
+        JavaProgramCode previousCode = loopArguments.get(0);
+        JavaProgramCode conditionCode = loopArguments.get(1);
+        JavaProgramCode bodyCode = loopArguments.get(2);
+        JavaProgramCode followingCode = loopArguments.get(3);
 
         JavaProgramCode code = previousCode;
         code.appendLineOfCode("while (", 0);
@@ -36,7 +42,7 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
     }
 
     private JavaProgramCode createCond(PatternGrammarParser.PatternContext ctx) {
-        JavaProgramCode code = new JavaProgramCode();
+        JavaProgramCode code = new JavaProgramCode(generatedClass);
 
 
 
@@ -44,7 +50,7 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
     }
 
     private JavaProgramCode createAtom(PatternGrammarParser.PatternContext ctx) {
-        JavaProgramCode code = new JavaProgramCode();
+        JavaProgramCode code = new JavaProgramCode(generatedClass);
 
         String functionCallName = ctx.getText() + "()";
 
@@ -96,5 +102,13 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
 
     public List<String> getErrors(){
         return Collections.unmodifiableList(errors);
+    }
+
+    public JavaProgramClass getGeneratedClass() {
+        return generatedClass;
+    }
+
+    public String toString() {
+        return generatedClass.toString();
     }
 }
