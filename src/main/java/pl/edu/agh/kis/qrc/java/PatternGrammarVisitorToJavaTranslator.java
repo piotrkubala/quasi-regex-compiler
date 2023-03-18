@@ -38,7 +38,6 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
         code.appendToLastLineOfCode(";");
         code.appendLineOfCode("}", -1);
         code.appendCode(followingCode, 0);
-        code.appendToLastLineOfCode(";");
 
         return code;
     }

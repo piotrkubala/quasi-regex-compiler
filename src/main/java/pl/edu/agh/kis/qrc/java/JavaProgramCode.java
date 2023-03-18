@@ -59,17 +59,19 @@ public class JavaProgramCode {
         parentClass = parentClass_;
         functionName = functionName_;
         functionNumber = functionNumber_;
+
+        parentClass.addFunctionToMaps(this);
     }
 
     private void prepare(JavaProgramClass parentClass_) {
         parentClass = parentClass_;
 
-        int functionCounter = parentClass.getCreatedFunctionsCounter();
+        int functionCounter = parentClass.getCreatedFunctionsCounterAndUpdate();
 
         functionName = "fun" + functionCounter + "()";
         functionNumber = functionCounter;
 
-        parentClass.addNewMethodByName(functionName);
+        parentClass.addFunctionToMaps(this);
     }
 
     /**
@@ -149,9 +151,14 @@ public class JavaProgramCode {
 
             output.append(indentSymbol.repeat(numberOfIndents));
             output.append(currentLine.line);
-            output.append('\n');
 
             currentLine = currentLine.nextCodeLine;
+
+            if (currentLine == null) {
+                output.append(";");
+            }
+
+            output.append('\n');
         }
         numberOfIndents--;
 
@@ -159,6 +166,10 @@ public class JavaProgramCode {
         output.append("}\n\n");
 
         return output;
+    }
+
+    public JavaProgramClass getParentClass() {
+        return parentClass;
     }
 
     @Override

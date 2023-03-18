@@ -14,8 +14,17 @@ public class JavaProgramClass {
      */
     private int createdFunctionsCounter = 0;
 
-    public int getCreatedFunctionsCounter() {
-        return createdFunctionsCounter;
+    public int getCreatedFunctionsCounterAndUpdate() {
+        return createdFunctionsCounter++;
+    }
+
+    public void addFunctionToMaps(JavaProgramCode code) {
+        if (!atomNameToFuncNumber.containsKey(code.functionName)) {
+            atomNameToFuncNumber.put(code.functionName, code.functionNumber);
+        }
+        if (!allClassMethods.containsKey(code.functionNumber)) {
+            allClassMethods.put(code.functionNumber, code);
+        }
     }
 
     public void addNewMethodByName(String newFunctionName) {
