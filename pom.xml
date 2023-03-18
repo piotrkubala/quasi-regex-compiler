@@ -37,7 +37,7 @@
         <version>4.12.0</version>
         <configuration>
           <visitor>true</visitor>
-<!--          <listener>false</listener>-->
+          <listener>false</listener>
         </configuration>
         <executions>
           <execution>
