@@ -34,6 +34,11 @@ public class JavaProgramCode {
 
     boolean isBooleanFunction = false;
 
+    /**
+     * true iff this object contains only atomic function call
+     */
+    boolean containsAtomicFunction = false;
+
     JavaProgramClass parentClass;
 
 
@@ -90,7 +95,11 @@ public class JavaProgramCode {
     }
 
     public void addCodeAsFunction(JavaProgramCode code) {
-        appendToLastLineOfCode(code.functionName);
+        if (!code.containsAtomicFunction) {
+            appendToLastLineOfCode(code.functionName);
+        } else {
+            appendToLastLineOfCode(code.javaLinesFirst.line.toString());
+        }
     }
 
     public void appendToLastLineOfCode(String textToAppend) {
@@ -110,6 +119,10 @@ public class JavaProgramCode {
             javaLinesLast.nextCodeLine = newLineOfCode;
             javaLinesLast = newLineOfCode;
         }
+    }
+
+    public void setAsContainingOnlyAtomicFunction(boolean containsAtomic) {
+        containsAtomicFunction = containsAtomic;
     }
 
     public void appendCode(JavaProgramCode codeToAppend, int indentChange) {

@@ -54,7 +54,9 @@ public class JavaProgramClass {
         sb.append("public class PatternClass {\n");
 
         for (JavaProgramCode code: allClassMethods.values()) {
-            sb.append(code.getFunctionCodeAsStringBuilder(1));
+            if (!code.containsAtomicFunction) {
+                sb.append(code.getFunctionCodeAsStringBuilder(1));
+            }
         }
 
         sb.append("}\n");

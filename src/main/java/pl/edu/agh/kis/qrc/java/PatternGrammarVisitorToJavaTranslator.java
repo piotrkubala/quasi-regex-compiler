@@ -39,6 +39,8 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
         code.appendLineOfCode("}", -1);
         code.appendCode(followingCode, 0);
 
+        code.setAsContainingOnlyAtomicFunction(false);
+
         return code;
     }
 
@@ -56,6 +58,7 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
         String functionCallName = ctx.getText() + "()";
 
         code.createNewEmptyFunctionIfNotExistsAndAppendCall(functionCallName);
+        code.setAsContainingOnlyAtomicFunction(true);
 
         return code;
     }
