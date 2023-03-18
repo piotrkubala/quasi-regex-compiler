@@ -25,8 +25,12 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
         JavaProgramCode followingCode = visitPattern(fourthPattern);
 
         JavaProgramCode code = previousCode;
-        code.AppendLineOfCode("while (", 0);
-
+        code.appendLineOfCode("while (", 0);
+        code.addCodeAsBooleanFunction(conditionCode);
+        code.appendToLastLineOfCode(") {");
+        code.appendCode(bodyCode, 1);
+        code.appendLineOfCode("}", -1);
+        code.appendCode(followingCode, 0);
 
         return code;
     }
@@ -39,13 +43,23 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
         return code;
     }
 
+    private JavaProgramCode createAtom(PatternGrammarParser.PatternContext ctx) {
+        JavaProgramCode code = new JavaProgramCode();
+
+        String functionCallName = ctx.getText() + "()";
+
+        code.createNewEmptyFunctionIfNotExistsAndAppendCall(functionCallName);
+
+        return code;
+    }
+
     /**
      * @param ctx the parse tree
      * @return list of lines of the parsed pattern
      */
     @Override
     public JavaProgramCode visitPattern(PatternGrammarParser.PatternContext ctx) {
-        JavaProgramCode code;
+        JavaProgramCode code = null;
         String patternName = ctx.children.get(0).getText();
 
         switch(patternName) {
@@ -60,11 +74,12 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
             case "ConcurRe":
                 break;
             case "Cond":
+                code = createCond(ctx);
                 break;
             case "Para":
                 break;
             case "Loop":
-
+                code = createLoop(ctx);
                 break;
             case "Choice":
                 break;
@@ -73,18 +88,10 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
             case "Repeat":
                 break;
             default:
-                throw new RuntimeException("Unknown pattern");
+                code = createAtom(ctx);
         }
-    }
 
-    @Override
-    public JavaProgramCode visitArguments(PatternGrammarParser.ArgumentsContext ctx) {
-
-    }
-
-    @Override
-    public JavaProgramCode visitArgs_with_delim(PatternGrammarParser.Args_with_delimContext ctx) {
-
+        return code;
     }
 
     public List<String> getErrors(){

@@ -11,6 +11,6 @@ public class PatternToJavaTranslator extends PatternTranslator{
     }
 
     public String generateCode() {
-        return visitor.visitPattern(patternRoot).toString();
+        return visitor.visitPattern(patternRoot).getFunctionCodeAsStringBuilder().toString();
     }
 }
