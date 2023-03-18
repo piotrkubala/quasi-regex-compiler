@@ -11,7 +11,9 @@ public class PatternToJavaTranslator extends PatternTranslator{
     }
 
     public String generateCode() {
-        visitor.visitPattern(patternRoot);
+        System.out.println(visitor.visitPattern(patternRoot).toString());
+
+        System.out.println("---===CLASS===---\n");
 
         return visitor.toString();
     }

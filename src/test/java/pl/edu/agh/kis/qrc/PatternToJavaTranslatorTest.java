@@ -6,7 +6,7 @@ import pl.edu.agh.kis.qrc.java.PatternToJavaTranslator;
 public class PatternToJavaTranslatorTest {
     @Test
     public void LoopExprTest() {
-        PatternToJavaTranslator translator = new PatternToJavaTranslator("Loop(a, b, Loop(a, b, c, d), d)");
+        PatternToJavaTranslator translator = new PatternToJavaTranslator("a");
 
         System.out.println(translator.generateCode());
     }

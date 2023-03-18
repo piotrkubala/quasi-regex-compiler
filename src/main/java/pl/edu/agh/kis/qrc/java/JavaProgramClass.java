@@ -21,7 +21,7 @@ public class JavaProgramClass {
     public void addNewMethodByName(String newFunctionName) {
         if (!atomNameToFuncNumber.containsKey(newFunctionName)) {
             atomNameToFuncNumber.put(newFunctionName, createdFunctionsCounter);
-            allClassMethods.put(createdFunctionsCounter, new JavaProgramCode(this));
+            allClassMethods.put(createdFunctionsCounter, new JavaProgramCode(this, newFunctionName, createdFunctionsCounter));
 
             createdFunctionsCounter++;
         }

@@ -6,9 +6,9 @@ import pl.edu.agh.kis.qrc.PatternGrammarParser;
 import java.util.*;
 
 public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVisitor<JavaProgramCode> {
-    private List<String> errors = new ArrayList<>();
+    private final List<String> errors = new ArrayList<>();
 
-    private JavaProgramClass generatedClass = new JavaProgramClass();
+    private final JavaProgramClass generatedClass = new JavaProgramClass();
 
     private List<JavaProgramCode> getNArgumentsForPattern(PatternGrammarParser.ArgumentsContext ctx, int n) {
         List<JavaProgramCode> ans = new ArrayList<>();
@@ -25,18 +25,20 @@ public class PatternGrammarVisitorToJavaTranslator extends PatternGrammarBaseVis
     private JavaProgramCode createLoop(PatternGrammarParser.PatternContext ctx) {
         List<JavaProgramCode> loopArguments = getNArgumentsForPattern(ctx.arguments, 4);
 
-        JavaProgramCode previousCode = loopArguments.get(0);
+        JavaProgramCode code = loopArguments.get(0);
         JavaProgramCode conditionCode = loopArguments.get(1);
         JavaProgramCode bodyCode = loopArguments.get(2);
         JavaProgramCode followingCode = loopArguments.get(3);
 
-        JavaProgramCode code = previousCode;
+        code.appendToLastLineOfCode(";");
         code.appendLineOfCode("while (", 0);
         code.addCodeAsBooleanFunction(conditionCode);
         code.appendToLastLineOfCode(") {");
         code.appendCode(bodyCode, 1);
+        code.appendToLastLineOfCode(";");
         code.appendLineOfCode("}", -1);
         code.appendCode(followingCode, 0);
+        code.appendToLastLineOfCode(";");
 
         return code;
     }

@@ -43,10 +43,22 @@ public class JavaProgramCode {
         prepare(parentClass_);
     }
 
-    public JavaProgramCode(JavaProgramClass parentClass_, String indentString_) {
+    public JavaProgramCode(JavaProgramClass parentClass_, String functionName_, int functionNumber_) {
+        indentSymbol = "    ";
+
+        prepare(parentClass_, functionName_, functionNumber_);
+    }
+
+    public JavaProgramCode(JavaProgramClass parentClass_, String functionName_, int functionNumber_, String indentString_) {
         indentSymbol = indentString_;
 
-        prepare(parentClass_);
+        prepare(parentClass_, functionName_, functionNumber_);
+    }
+
+    private void prepare(JavaProgramClass parentClass_, String functionName_, int functionNumber_) {
+        parentClass = parentClass_;
+        functionName = functionName_;
+        functionNumber = functionNumber_;
     }
 
     private void prepare(JavaProgramClass parentClass_) {
@@ -131,6 +143,7 @@ public class JavaProgramCode {
         output.append(functionName);
         output.append(" {\n");
 
+        numberOfIndents++;
         while (currentLine != null) {
             numberOfIndents += currentLine.numberOfIndentsToGoUp;
 
@@ -140,6 +153,7 @@ public class JavaProgramCode {
 
             currentLine = currentLine.nextCodeLine;
         }
+        numberOfIndents--;
 
         output.append(indentSymbol.repeat(numberOfIndents));
         output.append("}\n\n");
@@ -149,6 +163,6 @@ public class JavaProgramCode {
 
     @Override
     public String toString() {
-        return getFunctionCodeAsStringBuilder(1).toString();
+        return getFunctionCodeAsStringBuilder(0).toString();
     }
 }
