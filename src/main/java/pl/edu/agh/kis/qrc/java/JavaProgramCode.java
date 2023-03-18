@@ -84,6 +84,10 @@ public class JavaProgramCode {
      * @param code
      */
     public void addCodeAsBooleanFunction(JavaProgramCode code) {
+        if (code.containsAtomicFunction) {
+            code = parentClass.getFunctionByName(code.javaLinesFirst.line.toString());
+        }
+
         addCodeAsFunction(code);
         code.isBooleanFunction = true;
     }

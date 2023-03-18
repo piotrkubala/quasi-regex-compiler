@@ -47,6 +47,10 @@ public class JavaProgramClass {
         }
     }
 
+    public JavaProgramCode getFunctionByName(String name) {
+        return allClassMethods.get(atomNameToFuncNumber.get(name));
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
