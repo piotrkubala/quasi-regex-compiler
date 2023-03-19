@@ -1,4 +1,4 @@
-grammar PatternGrammar;
+grammar Pattern;
 
 /**
     Parser Grammar
@@ -24,20 +24,12 @@ pattern_name
         int number_of_args = 0;
     ]
     : PATTERN_NAME_LEX {
-        switch($text) {
-        case "Loop":
-            $number_of_args = 4;
-            break;
-        case "If":
-            $number_of_args = 4;
-            break;
-        case "Choice":
-            $number_of_args = 4;
-            break;
-        case "Seq":
-            $number_of_args = 2;
-            break;
-        }
+        $number_of_args = switch($text) {
+            case "Seq" -> 2;
+            case "Branch", "Concur", "SeqSeq" -> 3;
+            case "Cond", "If", "Para", "Loop", "Repeat" -> 4;
+            default -> -1;
+        };
     }
     ;
 
