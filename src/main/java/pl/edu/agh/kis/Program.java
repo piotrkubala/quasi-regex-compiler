@@ -18,13 +18,18 @@ public class Program {
             this.indentation = indentation;
         }
 
+        Line(Line line) {
+            this.content = line.content;
+            this.indentation = line.indentation;
+        }
+
         private Line indent(int indentAmount) {
             indentation += indentAmount;
             return this;
         }
     }
 
-    private List<Line> lines;
+    private final List<Line> lines;
     private final String indentationString;
 
     public Program() {
@@ -47,7 +52,9 @@ public class Program {
     }
 
     public Program appendBlock(Program block, int indentation) {
-        lines.addAll(block.indent(indentation).lines);
+        for (Line line : block.lines) {
+            lines.add(new Line(line).indent(indentation));
+        }
         return this;
     }
 
@@ -59,10 +66,5 @@ public class Program {
                     .append('\n');
         }
         return builder.toString();
-    }
-
-    private Program indent(int indentAmount) {
-        lines = lines.stream().map(line -> line.indent(indentAmount)).collect(Collectors.toList());
-        return this;
     }
 }

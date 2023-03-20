@@ -117,7 +117,7 @@ public class PythonPatternGenerator extends PatternGenerator {
     protected Program visitRepeat(Program preStatement, Program loopBody, String predicate, Program postStatement) {
         return new Program().appendBlock(preStatement)
                 .appendBlock(loopBody)
-                .appendLine("while " + predicate + ":")
+                .appendLine("while not " + predicate + ":")
                 .appendBlock(loopBody, 1)
                 .appendBlock(postStatement);
     }

@@ -107,7 +107,7 @@ public class JavaPatternGenerator extends PatternGenerator {
         return new Program().appendBlock(preStatement)
                 .appendLine("do {")
                 .appendBlock(loopBody, 1)
-                .appendLine("} while (" + predicate + ");")
+                .appendLine("} while (!" + predicate + ");")
                 .appendBlock(postStatement);
     }
 }
