@@ -8,6 +8,7 @@ public class JavaPatternGenerator extends PatternGenerator {
     private final Program program;
     private final Set<String> functions;
     private final Set<String> predicates;
+    private int tasksToParallelise = 0;
 
     public JavaPatternGenerator() {
         this.program = new Program();
@@ -68,8 +69,23 @@ public class JavaPatternGenerator extends PatternGenerator {
 
     @Override
     protected Program visitConcur(Program preStatement, Program firstThread, Program secondThread) {
-        // TO DO
-        return new Program().appendBlock(preStatement).appendBlock(firstThread).appendBlock(secondThread);
+        int first = tasksToParallelise++;
+        int second = tasksToParallelise++;
+        return new Program().appendBlock(preStatement)
+                .appendLine("Thread thread" + first + " = new Thread(() -> {")
+                .appendBlock(firstThread, 1)
+                .appendLine("});")
+                .appendLine("Thread thread" + second + " = new Thread(() -> {")
+                .appendBlock(secondThread, 1)
+                .appendLine("});")
+                .appendLine("thread" + first + ".start()")
+                .appendLine("thread" + second + ".start()")
+                .appendLine("try {")
+                .appendLine("thread" + first + ".join()", 1)
+                .appendLine("thread" + second + ".join()", 1)
+                .appendLine("} catch (InterruptedException e) {")
+                .appendLine("", 1)
+                .appendLine("}");
     }
 
     @Override
@@ -84,8 +100,8 @@ public class JavaPatternGenerator extends PatternGenerator {
 
     @Override
     protected Program visitPara(Program preStatement, Program firstThread, Program secondThread, Program postStatement) {
-        // TO DO
-        return new Program().appendBlock(preStatement).appendBlock(firstThread).appendBlock(secondThread).appendBlock(postStatement);
+        return visitConcur(preStatement, firstThread, secondThread)
+                .appendBlock(postStatement);
     }
 
     @Override
