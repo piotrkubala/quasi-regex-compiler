@@ -8,15 +8,13 @@ pattern:
     pattern_name LEFT_BRACKET arguments RIGHT_BRACKET {
         int expected_number = $pattern_name.ctx.number_of_args;
         int number_got = $arguments.ctx.number_of_args;
-        String res = "Expected " + expected_number + " of arguments but got " + number_got;
 
         if (expected_number != number_got) {
-            // maybe throw an exception here?
-            System.out.println(res);
-            throw new RuntimeException(res);
+            throw GeneratorException.argumentCountMismatch($start.getLine(), $start.getCharPositionInLine(), $pattern_name.text, expected_number, number_got);
         }
     }
     | ATOM
+    | STRING
     ;
 
 pattern_name
@@ -28,7 +26,7 @@ pattern_name
             case "Seq" -> 2;
             case "Branch", "Concur", "SeqSeq" -> 3;
             case "Cond", "If", "Para", "Loop", "Repeat" -> 4;
-            default -> -1;
+            default -> throw GeneratorException.unknownPattern($PATTERN_NAME_LEX.line, $PATTERN_NAME_LEX.pos, $text);
         };
     }
     ;
@@ -67,7 +65,10 @@ LEFT_BRACKET: '('
 RIGHT_BRACKET: ')'
     ;
 
-ATOM: [a-z]+
+ATOM: [a-z][A-Za-z0-9_]*
+    ;
+
+STRING: '"' ('\\"'|.)*? '"'
     ;
 
 WHITESPACE: [\n\t ]+ -> skip

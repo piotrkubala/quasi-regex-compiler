@@ -58,6 +58,10 @@ public class Program {
         return this;
     }
 
+    public String get(int index) {
+        return lines.get(index).content;
+    }
+
     public String build() {
         StringBuilder builder = new StringBuilder();
         for (Line line : lines) {
