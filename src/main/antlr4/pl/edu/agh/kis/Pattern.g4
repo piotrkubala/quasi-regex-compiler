@@ -4,25 +4,25 @@ grammar Pattern;
     Parser Grammar
 */
 
-pattern:
-    pattern_name LEFT_BRACKET arguments RIGHT_BRACKET {
-        int expected_number = $pattern_name.ctx.number_of_args;
-        int number_got = $arguments.ctx.number_of_args;
+pattern :
+    patternName LEFT_BRACKET (args+=pattern (DELIMITER args+=pattern)*)? RIGHT_BRACKET {
+        int expected_arity = $patternName.ctx.arity;
+        int got_arity = $args.size();
 
-        if (expected_number != number_got) {
-            throw GeneratorException.argumentCountMismatch($start.getLine(), $start.getCharPositionInLine(), $pattern_name.text, expected_number, number_got);
+        if (expected_arity != got_arity) {
+            throw GeneratorException.argumentCountMismatch($start.getLine(), $start.getCharPositionInLine(), $patternName.text, expected_arity, got_arity);
         }
     }
-    | ATOM
+    | method
     | STRING
     ;
 
-pattern_name
+patternName
     locals [
-        int number_of_args = 0;
+        int arity = 0;
     ]
     : PATTERN_NAME_LEX {
-        $number_of_args = switch($text) {
+        $arity = switch ($text) {
             case "Seq" -> 2;
             case "Branch", "Concur", "SeqSeq" -> 3;
             case "Cond", "If", "Para", "Loop", "Repeat" -> 4;
@@ -31,24 +31,11 @@ pattern_name
     }
     ;
 
-args_with_delim
-    returns [int number_of_args]
-    @init {
-        int number_of_args = 0;
-    }
-    : DELIMITER arguments {$number_of_args = $arguments.number_of_args + 1;}
+method : ATOM LEFT_BRACKET (args+=parameter (DELIMITER args+=parameter)*)? RIGHT_BRACKET
     ;
 
-arguments
-    returns [int number_of_args]
-    @init {
-        int number_of_args = 0;
-    }
-    : pattern {$number_of_args = 1;}
-    | pattern args_with_delim {$number_of_args = $args_with_delim.number_of_args;}
-    | args_with_delim pattern {$number_of_args = $args_with_delim.number_of_args;}
+parameter : INTEGER | FLOATING | BOOLEAN | STRING | method
     ;
-
 
 /**
     Lexer Grammar
@@ -62,10 +49,20 @@ DELIMITER: ','
 
 LEFT_BRACKET: '('
     ;
+
 RIGHT_BRACKET: ')'
     ;
 
+BOOLEAN: 'true' | 'false'
+    ;
+
 ATOM: [a-z][A-Za-z0-9_]*
+    ;
+
+INTEGER : ('+' | '-') ? ('0' | [1-9][0-9]*)
+    ;
+
+FLOATING : ('+' | '-') ? ('0' | [1-9][0-9]*) '.' [0-9]+
     ;
 
 STRING: '"' ('\\"'|.)*? '"'

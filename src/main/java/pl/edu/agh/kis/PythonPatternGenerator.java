@@ -1,19 +1,14 @@
 package pl.edu.agh.kis;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class PythonPatternGenerator extends PatternGenerator {
 
     private final Program program;
-    private final Set<String> functions;
-    private final Set<String> predicates;
     private int tasksToParallelise = 0;
 
     public PythonPatternGenerator() {
         this.program = new Program();
-        this.functions = new HashSet<>();
-        this.predicates = new HashSet<>();
     }
 
     @Override
@@ -21,16 +16,17 @@ public class PythonPatternGenerator extends PatternGenerator {
         Program main = visitPattern(ctx);
         Program definitions = new Program();
 
-        for (String predicate : predicates) {
-            definitions.appendLine("def " + predicate + "():")
-                    .appendLine("return true", 1)
-                    .appendLine("\n");
-        }
-
-        for (String function : functions) {
-            definitions.appendLine("def " + function + "():")
-                    .appendLine("pass", 1)
-                    .appendLine("\n");
+        for (Method method : methods) {
+            definitions.appendLine("def " + method.name + "(" + mangleNames(method.parameterTypes) + "):");
+            switch (method.returnType.name) {
+                case "INTEGER" -> definitions.appendLine("return 0", 1);
+                case "FLOATING" -> definitions.appendLine("return 0.0", 1);
+                case "STRING" -> definitions.appendLine("return \"\"", 1);
+                case "BOOLEAN" -> definitions.appendLine("return true", 1);
+                case "VOID" -> definitions.appendLine("pass", 1);
+                default -> definitions.appendLine("return null", 1);
+            }
+            definitions.appendLine("\n");
         }
 
         if (tasksToParallelise > 0)
@@ -42,15 +38,46 @@ public class PythonPatternGenerator extends PatternGenerator {
     }
 
     @Override
-    protected String visitAtom(String name) {
-        functions.add(name);
-        return name + "()";
+    protected String mapType(Method.Type type) {
+        return switch (type.name) {
+            case "INTEGER" -> "int";
+            case "FLOATING" -> "float";
+            case "STRING" -> "str";
+            case "BOOLEAN" -> "bool";
+            case "OBJECT" -> "object";
+            case "VOID" -> "void";
+            default -> type.name;
+        };
     }
 
     @Override
-    protected String visitPredicate(String name) {
-        predicates.add(name);
-        return name + "()";
+    protected String mangleNames(List<Method.Type> parameters) {
+        Map<String, Integer> namesCount = new HashMap<>();
+        List<String> names = new ArrayList<>();
+
+        for (var param : parameters) {
+            String name = mapType(param).charAt(0) + mapType(param).chars().skip(1)
+                    .filter(Character::isUpperCase)
+                    .map(Character::toLowerCase)
+                    .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                    .toString();
+
+            namesCount.put(name, namesCount.getOrDefault(name, -1) + 1);
+
+            names.add(name + namesCount.get(name));
+        }
+
+        return String.join(", ", names);
+    }
+
+    @Override
+    protected String visitAtomicExpression(String name, List<String> parameters) {
+        return String.format("%s(%s)", name, String.join(", ", parameters));
+    }
+
+    @Override
+    protected Program visitAtomicStatement(String name, List<String> parameters) {
+        return new Program().appendLine(visitAtomicExpression(name, parameters));
     }
 
     @Override

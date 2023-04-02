@@ -1,126 +1,107 @@
 package pl.edu.agh.kis;
 
+import org.antlr.v4.runtime.RuleContext;
+
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+import static pl.edu.agh.kis.Method.Type;
 
 public abstract class PatternGenerator extends PatternBaseVisitor<Program> implements PatternVisitor<Program> {
+    Set<Method> methods = new HashSet<>();
+
     @Override
     public Program visitPattern(PatternParser.PatternContext ctx) {
         if (ctx.STRING() != null) {
             return new Program().appendLine(visitString(ctx.STRING().getText()));
-        }
-        else if (ctx.ATOM() != null) {
-            return new Program().appendLine(visitAtom(ctx.ATOM().getText()));
-        } else {
-            String patternName = ctx.pattern_name().PATTERN_NAME_LEX().getText();
-            List<PatternParser.PatternContext> arguments = getArguments(ctx);
+        } else if (ctx.method() != null) {
+            introduceMethod(ctx.method(), Type.Void);
 
+            return visitAtomicStatement(
+                    ctx.method().ATOM().getText(),
+                    ctx.method().args.stream().map(RuleContext::getText).collect(Collectors.toList()));
+        } else {
+            String patternName = ctx.patternName().PATTERN_NAME_LEX().getText();
             switch (patternName) {
                 case "Seq" -> {
-                    Program first = visitPattern(arguments.get(0));
-                    Program then = visitPattern(arguments.get(1));
+                    Program first = visitPattern(ctx.args.get(0));
+                    Program then = visitPattern(ctx.args.get(1));
 
                     return visitSeq(first, then);
                 }
                 case "Branch" -> {
-                    checkArgumentTypes(arguments, 0, patternName);
-
-                    String predicate;
-
-                    if (arguments.get(0).STRING() != null)
-                        predicate = visitString(arguments.get(0).STRING().getText());
-                    else
-                        predicate = visitPredicate(arguments.get(0).ATOM().getText());
-
-                    Program thenBranch = visitPattern(arguments.get(1));
-                    Program elseBranch = visitPattern(arguments.get(2));
+                    String predicate = getPredicate(ctx.args.get(0), 0, patternName);
+                    Program thenBranch = visitPattern(ctx.args.get(1));
+                    Program elseBranch = visitPattern(ctx.args.get(2));
 
                     return visitBranch(predicate, thenBranch, elseBranch);
                 }
                 case "Concur" -> {
-                    Program preStatement = visitPattern(arguments.get(0));
-                    Program firstThread = visitPattern(arguments.get(1));
-                    Program secondThread = visitPattern(arguments.get(2));
+                    Program preStatement = visitPattern(ctx.args.get(0));
+                    Program firstThread = visitPattern(ctx.args.get(1));
+                    Program secondThread = visitPattern(ctx.args.get(2));
 
                     return visitConcur(preStatement, firstThread, secondThread);
                 }
                 case "Cond", "If" -> {
-                    checkArgumentTypes(arguments, 0, patternName);
-
-                    String predicate;
-
-                    if (arguments.get(0).STRING() != null)
-                        predicate = visitString(arguments.get(0).STRING().getText());
-                    else
-                        predicate = visitPredicate(arguments.get(0).ATOM().getText());
-
-                    Program thenBranch = visitPattern(arguments.get(1));
-                    Program elseBranch = visitPattern(arguments.get(2));
-                    Program postStatement = visitPattern(arguments.get(3));
+                    String predicate = getPredicate(ctx.args.get(0), 0, patternName);
+                    Program thenBranch = visitPattern(ctx.args.get(1));
+                    Program elseBranch = visitPattern(ctx.args.get(2));
+                    Program postStatement = visitPattern(ctx.args.get(3));
 
                     return visitCond(predicate, thenBranch, elseBranch, postStatement);
                 }
                 case "Para" -> {
-                    Program preStatement = visitPattern(arguments.get(0));
-                    Program firstThread = visitPattern(arguments.get(1));
-                    Program secondThread = visitPattern(arguments.get(2));
-                    Program postStatement = visitPattern(arguments.get(3));
+                    Program preStatement = visitPattern(ctx.args.get(0));
+                    Program firstThread = visitPattern(ctx.args.get(1));
+                    Program secondThread = visitPattern(ctx.args.get(2));
+                    Program postStatement = visitPattern(ctx.args.get(3));
 
                     return visitPara(preStatement, firstThread, secondThread, postStatement);
                 }
                 case "Loop" -> {
-                    checkArgumentTypes(arguments, 1, patternName);
-
-                    Program preStatement = visitPattern(arguments.get(0));
-
-                    String predicate;
-
-                    if (arguments.get(1).STRING() != null)
-                        predicate = visitString(arguments.get(1).STRING().getText());
-                    else
-                        predicate = visitPredicate(arguments.get(1).ATOM().getText());
-
-                    Program loopBody = visitPattern(arguments.get(2));
-                    Program postStatement = visitPattern(arguments.get(3));
+                    Program preStatement = visitPattern(ctx.args.get(0));
+                    String predicate = getPredicate(ctx.args.get(1), 1, patternName);
+                    Program loopBody = visitPattern(ctx.args.get(2));
+                    Program postStatement = visitPattern(ctx.args.get(3));
 
                     return visitLoop(preStatement, predicate, loopBody, postStatement);
                 }
                 case "SeqSeq" -> {
-                    Program first = visitPattern(arguments.get(0));
-                    Program then = visitPattern(arguments.get(1));
-                    Program last = visitPattern(arguments.get(2));
+                    Program first = visitPattern(ctx.args.get(0));
+                    Program then = visitPattern(ctx.args.get(1));
+                    Program last = visitPattern(ctx.args.get(2));
 
                     return visitSeqSeq(first, then, last);
                 }
                 case "Repeat" -> {
-                    checkArgumentTypes(arguments, 2, patternName);
-
-                    Program preStatement = visitPattern(arguments.get(0));
-                    Program loopBody = visitPattern(arguments.get(1));
-
-                    String predicate;
-
-                    if (arguments.get(2).STRING() != null)
-                        predicate = visitString(arguments.get(2).STRING().getText());
-                    else
-                        predicate = visitPredicate(arguments.get(2).ATOM().getText());
-
-                    Program postStatement = visitPattern(arguments.get(3));
+                    Program preStatement = visitPattern(ctx.args.get(0));
+                    Program loopBody = visitPattern(ctx.args.get(1));
+                    String predicate = getPredicate(ctx.args.get(2), 2, patternName);
+                    Program postStatement = visitPattern(ctx.args.get(3));
 
                     return visitRepeat(preStatement, loopBody, predicate, postStatement);
                 }
-                default -> {
-                    return new Program();
-                }
+                default -> throw GeneratorException.unknownPattern(
+                        ctx.getStart().getLine(),
+                        ctx.getStart().getCharPositionInLine(),
+                        patternName
+                );
             }
         }
     }
 
     public abstract Program generate(PatternParser.PatternContext ctx);
 
-    protected abstract String visitAtom(String name);
+    protected abstract String mangleNames(List<Type> parameters);
 
-    protected abstract String visitPredicate(String name);
+    protected abstract String mapType(Type type);
+
+    protected abstract String visitAtomicExpression(String name, List<String> parameters);
+
+    protected abstract Program visitAtomicStatement(String name, List<String> parameters);
 
     protected abstract Program visitSeq(Program first, Program then);
 
@@ -142,25 +123,44 @@ public abstract class PatternGenerator extends PatternBaseVisitor<Program> imple
         return string.translateEscapes().replaceAll("^.|.$", "");
     }
 
-    private List<PatternParser.PatternContext> getArguments(PatternParser.PatternContext ctx) {
-        List<PatternParser.PatternContext> args = new ArrayList<>();
+    private void introduceMethod(PatternParser.MethodContext ctx, Type returnType) {
+        String name = ctx.ATOM().getText();
+        List<Type> parameterTypes = new ArrayList<>();
 
-        PatternParser.ArgumentsContext curr = ctx.arguments;
-
-        while (curr.args_with_delim != null) {
-            args.add(curr.pattern());
-            curr = curr.args_with_delim.arguments;
+        for (var param : ctx.args) {
+            if (param.INTEGER() != null)
+                parameterTypes.add(Type.Integer);
+            else if (param.FLOATING() != null)
+                parameterTypes.add(Type.Floating);
+            else if (param.BOOLEAN() != null)
+                parameterTypes.add(Type.Boolean);
+            else if (param.STRING() != null)
+                parameterTypes.add(Type.String);
+            else {
+                introduceMethod(param.method(), Type.Object);
+                parameterTypes.add(Type.Object);
+            }
         }
-        args.add(curr.pattern());
 
-        return args;
+        methods.add(new Method(name, parameterTypes, returnType));
     }
 
-    private void checkArgumentTypes(List<PatternParser.PatternContext> args, int argPos, String patternName) {
-        if (args.get(argPos).ATOM() == null && args.get(argPos).STRING() == null) {
-            throw GeneratorException.argumentTypeMismatch(args.get(argPos).getStart().getLine(),
-                    args.get(argPos).getStart().getCharPositionInLine(),
+    private String getPredicate(PatternParser.PatternContext arg, int argPos, String patternName) {
+        if (arg.method() == null && arg.STRING() == null) {
+            throw GeneratorException.argumentTypeMismatch(arg.getStart().getLine(),
+                    arg.getStart().getCharPositionInLine(),
                     argPos, patternName);
+        }
+
+        if (arg.STRING() != null)
+            return visitString(arg.STRING().getText());
+        else {
+            introduceMethod(arg.method(), Type.Boolean);
+
+            return visitAtomicExpression(
+                    arg.method().ATOM().getText(),
+                    arg.method().args.stream().map(RuleContext::getText).collect(Collectors.toList())
+            );
         }
     }
 }
