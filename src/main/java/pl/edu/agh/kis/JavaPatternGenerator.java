@@ -45,7 +45,7 @@ public class JavaPatternGenerator extends PatternGenerator {
             case "INTEGER" -> "int";
             case "FLOATING" -> "float";
             case "STRING" -> "String";
-            case "BOOLEAN" -> "bool";
+            case "BOOLEAN" -> "boolean";
             case "OBJECT" -> "Object";
             case "VOID" -> "void";
             default -> type.name;
