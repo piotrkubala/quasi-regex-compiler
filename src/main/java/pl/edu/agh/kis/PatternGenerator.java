@@ -1,12 +1,6 @@
 package pl.edu.agh.kis;
 
-import org.antlr.v4.runtime.RuleContext;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 import static pl.edu.agh.kis.Method.Type;
 
 public abstract class PatternGenerator extends PatternBaseVisitor<Program> implements PatternVisitor<Program> {
@@ -21,7 +15,7 @@ public abstract class PatternGenerator extends PatternBaseVisitor<Program> imple
 
             return visitAtomicStatement(
                     ctx.method().ATOM().getText(),
-                    ctx.method().args.stream().map(RuleContext::getText).collect(Collectors.toList()));
+                    getActualParameters(ctx.method().args));
         } else {
             String patternName = ctx.patternName().PATTERN_NAME_LEX().getText();
             switch (patternName) {
@@ -95,8 +89,6 @@ public abstract class PatternGenerator extends PatternBaseVisitor<Program> imple
 
     public abstract Program generate(PatternParser.PatternContext ctx);
 
-    protected abstract String mangleNames(List<Type> parameters);
-
     protected abstract String mapType(Type type);
 
     protected abstract String visitAtomicExpression(String name, List<String> parameters);
@@ -119,13 +111,37 @@ public abstract class PatternGenerator extends PatternBaseVisitor<Program> imple
 
     protected abstract Program visitRepeat(Program preStatement, Program loopBody, String predicate, Program postStatement);
 
+    protected List<String> getFormalParameters(List<Type> args) {
+        Map<String, Integer> namesCount = new HashMap<>();
+        List<String> names = new ArrayList<>();
+
+        for (var param : args) {
+            String name = mapType(param).toLowerCase().charAt(0) + mapType(param).chars().skip(1)
+                    .filter(Character::isUpperCase)
+                    .map(Character::toLowerCase)
+                    .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                    .toString();
+
+            namesCount.put(name, namesCount.getOrDefault(name, -1) + 1);
+
+            names.add(name + namesCount.get(name));
+        }
+
+        return names;
+    }
+
     private String visitString(String string) {
         return string.translateEscapes().replaceAll("^.|.$", "");
     }
 
-    private void introduceMethod(PatternParser.MethodContext ctx, Type returnType) {
+    private Type introduceMethod(PatternParser.MethodContext ctx, Type defaultReturnType) {
         String name = ctx.ATOM().getText();
         List<Type> parameterTypes = new ArrayList<>();
+
+        Type returnType = defaultReturnType;
+
+        if (ctx.returnType != null)
+            returnType = Type.of(visitString((ctx.returnType.getText())));
 
         for (var param : ctx.args) {
             if (param.INTEGER() != null)
@@ -136,13 +152,33 @@ public abstract class PatternGenerator extends PatternBaseVisitor<Program> imple
                 parameterTypes.add(Type.Boolean);
             else if (param.STRING() != null)
                 parameterTypes.add(Type.String);
-            else {
-                introduceMethod(param.method(), Type.Object);
-                parameterTypes.add(Type.Object);
+            else if (param.method() != null) {
+                Type rt = introduceMethod(param.method(), Type.Object);
+                parameterTypes.add(rt);
+            } else {
+                parameterTypes.add(Type.of(visitString(param.typedExpr().type.getText())));
             }
         }
 
         methods.add(new Method(name, parameterTypes, returnType));
+
+        return returnType;
+    }
+
+    private List<String> getActualParameters(List<PatternParser.ParameterContext> args) {
+        List<String> parameters = new ArrayList<>();
+
+        for (var param : args) {
+            if (param.typedExpr() != null) {
+                parameters.add(visitString(param.typedExpr().expr.getText()));
+            } else if (param.method() != null) {
+                parameters.add(visitAtomicExpression(param.method().ATOM().getText(),
+                        getActualParameters(param.method().args)));
+            }
+            else parameters.add(param.getText());
+        }
+
+        return parameters;
     }
 
     private String getPredicate(PatternParser.PatternContext arg, int argPos, String patternName) {
@@ -159,7 +195,7 @@ public abstract class PatternGenerator extends PatternBaseVisitor<Program> imple
 
             return visitAtomicExpression(
                     arg.method().ATOM().getText(),
-                    arg.method().args.stream().map(RuleContext::getText).collect(Collectors.toList())
+                    getActualParameters(arg.method().args)
             );
         }
     }

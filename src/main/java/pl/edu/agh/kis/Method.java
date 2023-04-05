@@ -7,7 +7,7 @@ public class Method {
     public static class Type {
         public String name;
 
-        public Type(String name) {
+        private Type(String name) {
             this.name = name;
         }
 
@@ -18,6 +18,17 @@ public class Method {
         public final static Type Object = new Type("OBJECT");
 
         public final static Type Void = new Type("VOID");
+
+        public static Type of(String name) {
+            return switch (name.toUpperCase()) {
+                case "INTEGER", "INT" -> Type.Integer;
+                case "FLOATING", "FLOAT" -> Type.Floating;
+                case "BOOLEAN", "BOOL" -> Type.Boolean;
+                case "STRING", "STR" -> Type.String;
+                case "OBJECT", "OBJ" -> Type.Object;
+                default -> new Type(name);
+            };
+        }
 
         @Override
         public boolean equals(Object o) {

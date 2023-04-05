@@ -31,17 +31,20 @@ patternName
     }
     ;
 
-method : ATOM LEFT_BRACKET (args+=parameter (DELIMITER args+=parameter)*)? RIGHT_BRACKET
+method : ATOM LEFT_BRACKET (args+=parameter (DELIMITER args+=parameter)*)? RIGHT_BRACKET (COLON returnType=STRING)?
     ;
 
-parameter : INTEGER | FLOATING | BOOLEAN | STRING | method
+parameter : INTEGER | FLOATING | BOOLEAN | STRING | method | typedExpr
+    ;
+
+typedExpr : expr=STRING COLON type=STRING
     ;
 
 /**
     Lexer Grammar
 */
 
-PATTERN_NAME_LEX: [A-Z][a-z]*
+PATTERN_NAME_LEX: [A-Z][A-Za-z]*
     ;
 
 DELIMITER: ','
@@ -51,6 +54,9 @@ LEFT_BRACKET: '('
     ;
 
 RIGHT_BRACKET: ')'
+    ;
+
+COLON: ':'
     ;
 
 BOOLEAN: 'true' | 'false'
@@ -68,5 +74,5 @@ FLOATING : ('+' | '-') ? ('0' | [1-9][0-9]*) '.' [0-9]+
 STRING: '"' ('\\"'|.)*? '"'
     ;
 
-WHITESPACE: [\n\t ]+ -> skip
+WHITESPACE: [\r\n\t ]+ -> skip
     ;

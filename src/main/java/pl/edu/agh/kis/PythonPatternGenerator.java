@@ -17,14 +17,14 @@ public class PythonPatternGenerator extends PatternGenerator {
         Program definitions = new Program();
 
         for (Method method : methods) {
-            definitions.appendLine("def " + method.name + "(" + mangleNames(method.parameterTypes) + "):");
+            definitions.appendLine("def " + method.name + "(" + String.join(", ", getFormalParameters(method.parameterTypes)) + "):");
             switch (method.returnType.name) {
                 case "INTEGER" -> definitions.appendLine("return 0", 1);
                 case "FLOATING" -> definitions.appendLine("return 0.0", 1);
                 case "STRING" -> definitions.appendLine("return \"\"", 1);
                 case "BOOLEAN" -> definitions.appendLine("return true", 1);
                 case "VOID" -> definitions.appendLine("pass", 1);
-                default -> definitions.appendLine("return null", 1);
+                default -> definitions.appendLine("return None", 1);
             }
             definitions.appendLine("\n");
         }
@@ -48,26 +48,6 @@ public class PythonPatternGenerator extends PatternGenerator {
             case "VOID" -> "void";
             default -> type.name;
         };
-    }
-
-    @Override
-    protected String mangleNames(List<Method.Type> parameters) {
-        Map<String, Integer> namesCount = new HashMap<>();
-        List<String> names = new ArrayList<>();
-
-        for (var param : parameters) {
-            String name = mapType(param).charAt(0) + mapType(param).chars().skip(1)
-                    .filter(Character::isUpperCase)
-                    .map(Character::toLowerCase)
-                    .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                    .toString();
-
-            namesCount.put(name, namesCount.getOrDefault(name, -1) + 1);
-
-            names.add(name + namesCount.get(name));
-        }
-
-        return String.join(", ", names);
     }
 
     @Override

@@ -1,6 +1,8 @@
 package pl.edu.agh.kis;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public class JavaPatternGenerator extends PatternGenerator {
 
@@ -18,8 +20,12 @@ public class JavaPatternGenerator extends PatternGenerator {
 
         for (Method method : methods) {
             String returnType = mapType(method.returnType);
+            List<String> formalParams = getFormalParameters(method.parameterTypes);
+            String formalParameters = IntStream.range(0, method.parameterTypes.size())
+                            .mapToObj(i -> mapType(method.parameterTypes.get(i)) + " " + formalParams.get(i))
+                            .collect(Collectors.joining(", "));
 
-            definitions.appendLine("private static " + returnType + " " + method.name + "(" + mangleNames(method.parameterTypes) + ") {");
+            definitions.appendLine("private static " + returnType + " " + method.name + "(" + formalParameters + ") {");
             switch (method.returnType.name) {
                 case "INTEGER" -> definitions.appendLine("return 0;", 1);
                 case "FLOATING" -> definitions.appendLine("return 0.0;", 1);
@@ -50,26 +56,6 @@ public class JavaPatternGenerator extends PatternGenerator {
             case "VOID" -> "void";
             default -> type.name;
         };
-    }
-
-    @Override
-    protected String mangleNames(List<Method.Type> parameters) {
-        Map<String, Integer> namesCount = new HashMap<>();
-        List<String> names = new ArrayList<>();
-
-        for (var param : parameters) {
-            String name = mapType(param).toLowerCase().charAt(0) + mapType(param).chars().skip(1)
-                    .filter(Character::isUpperCase)
-                    .map(Character::toLowerCase)
-                    .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
-                    .toString();
-
-            namesCount.put(name, namesCount.getOrDefault(name, -1) + 1);
-
-            names.add(mapType(param) + " " + name + namesCount.get(name));
-        }
-
-        return String.join(", ", names);
     }
 
     @Override
