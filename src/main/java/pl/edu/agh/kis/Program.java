@@ -2,7 +2,6 @@ package pl.edu.agh.kis;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class Program {
     private static class Line {
@@ -37,6 +36,10 @@ public class Program {
         this.indentationString = "    ";
     }
 
+    public boolean isEmpty() {
+        return lines.isEmpty();
+    }
+
     public Program appendLine(String line) {
         lines.add(new Line(line));
         return this;
@@ -58,8 +61,14 @@ public class Program {
         return this;
     }
 
-    public String get(int index) {
-        return lines.get(index).content;
+    public Program appendIf(boolean condition, Program trueBranch, Program falseBranch) {
+        return appendIf(condition, trueBranch, falseBranch, 0);
+    }
+
+    public Program appendIf(boolean condition, Program trueBranch, Program falseBranch, int indentation) {
+        if (condition)
+            return appendBlock(trueBranch, indentation);
+        else return appendBlock(falseBranch, indentation);
     }
 
     public String build() {

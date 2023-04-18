@@ -6,6 +6,7 @@ public class PythonPatternGenerator extends PatternGenerator {
 
     private final Program program;
     private int tasksToParallelise = 0;
+    private final Program passStatement = new Program().appendLine("pass");
 
     public PythonPatternGenerator() {
         this.program = new Program();
@@ -68,9 +69,9 @@ public class PythonPatternGenerator extends PatternGenerator {
     @Override
     protected Program visitBranch(String predicate, Program thenBranch, Program elseBranch) {
         return new Program().appendLine("if " + predicate + ":")
-                .appendBlock(thenBranch, 1)
+                .appendIf(thenBranch.isEmpty(), passStatement, thenBranch, 1)
                 .appendLine("else:")
-                .appendBlock(elseBranch, 1);
+                .appendIf(elseBranch.isEmpty(), passStatement, elseBranch, 1);
     }
 
     @Override
@@ -79,10 +80,10 @@ public class PythonPatternGenerator extends PatternGenerator {
         int first = tasksToParallelise++;
         int second = tasksToParallelise++;
         return new Program().appendLine("def task" + first + "():")
-                .appendBlock(firstThread, 1)
+                .appendIf(firstThread.isEmpty(), passStatement, firstThread, 1)
                 .appendLine("\n")
                 .appendLine("def task" + second + "():")
-                .appendBlock(secondThread, 1)
+                .appendIf(secondThread.isEmpty(), passStatement, secondThread, 1)
                 .appendLine("\n")
                 .appendBlock(preStatement)
                 .appendLine("threads" + threads + " = [Thread(target=task" + first + "), Thread(target=task" + second + ")]")
@@ -95,9 +96,9 @@ public class PythonPatternGenerator extends PatternGenerator {
     @Override
     protected Program visitCond(String predicate, Program thenBranch, Program elseBranch, Program postStatement) {
         return new Program().appendLine("if " + predicate + ":")
-                .appendBlock(thenBranch, 1)
+                .appendIf(thenBranch.isEmpty(), passStatement, thenBranch, 1)
                 .appendLine("else:")
-                .appendBlock(elseBranch, 1)
+                .appendIf(elseBranch.isEmpty(), passStatement, elseBranch, 1)
                 .appendBlock(postStatement);
     }
 
@@ -111,7 +112,7 @@ public class PythonPatternGenerator extends PatternGenerator {
     protected Program visitLoop(Program preStatement, String predicate, Program loopBody, Program postStatement) {
         return new Program().appendBlock(preStatement)
                 .appendLine("while " + predicate + ":")
-                .appendBlock(loopBody, 1)
+                .appendIf(loopBody.isEmpty(), passStatement, loopBody, 1)
                 .appendBlock(postStatement);
     }
 
@@ -125,7 +126,7 @@ public class PythonPatternGenerator extends PatternGenerator {
         return new Program().appendBlock(preStatement)
                 .appendBlock(loopBody)
                 .appendLine("while not " + predicate + ":")
-                .appendBlock(loopBody, 1)
+                .appendIf(loopBody.isEmpty(), passStatement, loopBody, 1)
                 .appendBlock(postStatement);
     }
 }

@@ -15,6 +15,7 @@ pattern :
     }
     | method
     | STRING
+    | EMPTY
     ;
 
 patternName
@@ -60,6 +61,9 @@ COLON: ':'
     ;
 
 BOOLEAN: 'true' | 'false'
+    ;
+
+EMPTY: 'empty'
     ;
 
 ATOM: [a-z][A-Za-z0-9_]*

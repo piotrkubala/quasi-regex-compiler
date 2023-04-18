@@ -8,9 +8,11 @@ public abstract class PatternGenerator extends PatternBaseVisitor<Program> imple
 
     @Override
     public Program visitPattern(PatternParser.PatternContext ctx) {
-        if (ctx.STRING() != null) {
+        if (ctx.EMPTY() != null) {
+            return new Program();
+        } else if (ctx.STRING() != null) {
             return new Program().appendLine(visitString(ctx.STRING().getText()));
-        } else if (ctx.method() != null) {
+        }  else if (ctx.method() != null) {
             introduceMethod(ctx.method(), Type.Void);
 
             return visitAtomicStatement(
