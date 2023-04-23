@@ -5,31 +5,13 @@ grammar Pattern;
 */
 
 pattern :
-    patternName LEFT_BRACKET (args+=pattern (DELIMITER args+=pattern)*)? RIGHT_BRACKET {
-        int expected_arity = $patternName.ctx.arity;
-        int got_arity = $args.size();
-
-        if (expected_arity != got_arity) {
-            throw GeneratorException.argumentCountMismatch($start.getLine(), $start.getCharPositionInLine(), $patternName.text, expected_arity, got_arity);
-        }
-    }
+    patternName LEFT_BRACKET (args+=pattern (DELIMITER args+=pattern)*)? RIGHT_BRACKET
     | method
     | STRING
     | EMPTY
     ;
 
-patternName
-    locals [
-        int arity = 0;
-    ]
-    : PATTERN_NAME_LEX {
-        $arity = switch ($text) {
-            case "Seq" -> 2;
-            case "Branch", "Concur", "SeqSeq" -> 3;
-            case "Cond", "If", "Para", "Loop", "Repeat" -> 4;
-            default -> throw GeneratorException.unknownPattern($PATTERN_NAME_LEX.line, $PATTERN_NAME_LEX.pos, $text);
-        };
-    }
+patternName : PATTERN_NAME_LEX
     ;
 
 method : ATOM LEFT_BRACKET (args+=parameter (DELIMITER args+=parameter)*)? RIGHT_BRACKET (COLON returnType=STRING)?
