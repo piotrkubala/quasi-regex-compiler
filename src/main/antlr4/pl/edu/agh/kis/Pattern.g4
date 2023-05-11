@@ -4,59 +4,30 @@ grammar Pattern;
     Parser Grammar
 */
 
-pattern:
-    pattern_name LEFT_BRACKET arguments RIGHT_BRACKET {
-        int expected_number = $pattern_name.ctx.number_of_args;
-        int number_got = $arguments.ctx.number_of_args;
-        String res = "Expected " + expected_number + " of arguments but got " + number_got;
-
-        if (expected_number != number_got) {
-            // maybe throw an exception here?
-            System.out.println(res);
-            throw new RuntimeException(res);
-        }
-    }
-    | ATOM
+pattern :
+    patternName LEFT_BRACKET (args+=pattern (DELIMITER args+=pattern)*)? RIGHT_BRACKET
+    | method
+    | STRING
+    | EMPTY
     ;
 
-pattern_name
-    locals [
-        int number_of_args = 0;
-    ]
-    : PATTERN_NAME_LEX {
-        $number_of_args = switch($text) {
-            case "Seq" -> 2;
-            case "Branch", "Concur", "SeqSeq" -> 3;
-            case "Cond", "If", "Para", "Loop", "Repeat" -> 4;
-            default -> -1;
-        };
-    }
+patternName : PATTERN_NAME_LEX
     ;
 
-args_with_delim
-    returns [int number_of_args]
-    @init {
-        int number_of_args = 0;
-    }
-    : DELIMITER arguments {$number_of_args = $arguments.number_of_args + 1;}
+method : ATOM LEFT_BRACKET (args+=parameter (DELIMITER args+=parameter)*)? RIGHT_BRACKET (COLON returnType=STRING)?
     ;
 
-arguments
-    returns [int number_of_args]
-    @init {
-        int number_of_args = 0;
-    }
-    : pattern {$number_of_args = 1;}
-    | pattern args_with_delim {$number_of_args = $args_with_delim.number_of_args;}
-    | args_with_delim pattern {$number_of_args = $args_with_delim.number_of_args;}
+parameter : INTEGER | FLOATING | BOOLEAN | STRING | method | typedExpr
     ;
 
+typedExpr : expr=STRING COLON type=STRING
+    ;
 
 /**
     Lexer Grammar
 */
 
-PATTERN_NAME_LEX: [A-Z][a-z]*
+PATTERN_NAME_LEX: [A-Z][A-Za-z]*
     ;
 
 DELIMITER: ','
@@ -64,11 +35,30 @@ DELIMITER: ','
 
 LEFT_BRACKET: '('
     ;
+
 RIGHT_BRACKET: ')'
     ;
 
-ATOM: [a-z]+
+COLON: ':'
     ;
 
-WHITESPACE: [\n\t ]+ -> skip
+BOOLEAN: 'true' | 'false'
+    ;
+
+EMPTY: 'empty'
+    ;
+
+ATOM: [a-z][A-Za-z0-9_]*
+    ;
+
+INTEGER : ('+' | '-') ? ('0' | [1-9][0-9]*)
+    ;
+
+FLOATING : ('+' | '-') ? ('0' | [1-9][0-9]*) '.' [0-9]+
+    ;
+
+STRING: '"' ('\\"'|.)*? '"'
+    ;
+
+WHITESPACE: [\r\n\t ]+ -> skip
     ;

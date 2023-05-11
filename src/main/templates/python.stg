@@ -1,0 +1,161 @@
+Program(methods, mainBody, includes, notice) ::= <<
+<notice:Comment()>
+
+<if(!includes.empty)>
+<includes:Include(); separator="\n">
+
+
+<else><endif>
+<methods:Method(); separator="\n\n">
+
+if __name__ == '__main__':
+    <mainBody>
+>>
+
+AtomicExp(name, args) ::= "<name>(<args; separator=\", \">)"
+
+AtomicSt ::= AtomicExp
+
+Include(include) ::= "import <include>"
+
+Comment(comment) ::= "# <comment>"
+
+Method(method) ::= <<
+def <method.name>(<method.parameterNames; separator=", ">):
+<if(method.procedure)>
+    pass
+<else>
+    return <defaultValue.(method.returnType)>;
+<endif>
+>>
+
+Seq(arg0, arg1) ::= <<
+<arg0>
+<arg1>
+>>
+
+SeqSeq(arg0, arg1, arg2) ::= <<
+<arg0>
+<arg1>
+<arg2>
+>>
+
+If(arg0, arg1) ::= <<
+if (<arg0>):
+<if(!arg1.empty)>
+    <arg1>
+<else>
+    pass
+<endif>
+>>
+
+Branch(arg0, arg1, arg2) ::= <<
+if (<arg0>):
+<if(!arg1.empty)>
+    <arg1>
+<else>
+    pass
+<endif>
+else:
+<if(!arg2.empty)>
+    <arg2>
+<else>
+    pass
+<endif>
+>>
+
+Cond(arg0, arg1, arg2, arg3) ::= <<
+if (<arg0>):
+<if(!arg1.empty)>
+    <arg1>
+<else>
+    pass
+<endif>
+else:
+<if(!arg2.empty)>
+    <arg2>
+<else>
+    pass
+<endif>
+<arg3>
+>>
+
+Loop(arg0, arg1, arg2, arg3, arg4) ::= <<
+<arg0>
+while True:
+    <arg1>
+
+    if (<arg2>):
+        break
+
+    <arg3>
+<arg4>
+>>
+
+While(arg0, arg1, arg2, arg3) ::= <<
+<arg0>
+while (<arg1>):
+<if(!arg2.empty)>
+    <arg2>
+<else>
+    pass
+<endif>
+<arg3>
+>>
+
+Repeat(arg0, arg1, arg2, arg3) ::= <<
+<arg0>
+<arg1>
+while (not <arg2>):
+<if(!arg1.empty)>
+    <arg1>
+<else>
+    pass
+<endif>
+<arg3>
+>>
+
+Concur(arg0, arg1, arg2, count0, count1) ::= <<
+def task<count0>():
+<if(!arg1.empty)>
+    <arg1>
+<else>
+    pass
+<endif>
+
+
+def task<count1>():
+<if(!arg2.empty)>
+    <arg2>
+<else>
+    pass
+<endif>
+
+
+<arg0>
+task<count0>.start()
+task<count1>.start()
+
+task<count0>.join()
+task<count1>.join()
+>>
+
+Para(arg0, arg1, arg2, arg3, count0, count1) ::= "<Concur(arg0, arg1, arg2, count0, count1)><\n><arg3>"
+
+typeName ::= [
+    "integer": "int",
+    "floating": "float",
+    "boolean": "bool",
+    "string": "str",
+    "object": "object",
+    "void": "void",
+    default: key
+]
+
+defaultValue ::= [
+    "integer": "0",
+    "floating": "0.0",
+    "boolean": "False",
+    "string": "\"\"",
+    default: "None"
+]

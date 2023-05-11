@@ -1,0 +1,137 @@
+Program(methods, mainBody, includes, notice) ::= <<
+<notice:Comment()>
+
+<if(!includes.empty)>
+<includes:Include(); separator="\n">
+
+<else><endif>
+class Program {
+    <methods:Method(); separator="\n\n">
+
+    public static void main(String[] args) {
+        <mainBody>
+    }
+}
+>>
+
+AtomicExp(name, args) ::= "<name>(<args; separator=\", \">)"
+
+AtomicSt(name, args) ::= "<AtomicExp(name, args)>;"
+
+Include(include) ::= "import <include>;"
+
+Comment(comment) ::= "// <comment>"
+
+Method(method) ::= <<
+private static <typeName.(method.returnType)> <method.name>(<method.parameterTypes, method.parameterNames:{type, name|<typeName.(type)> <name>}; separator=", ">) {
+<if(method.procedure)>
+
+<else>
+    return <defaultValue.(method.returnType)>;
+<endif>
+}
+>>
+
+Seq(arg0, arg1) ::= <<
+<arg0>
+<arg1>
+>>
+
+SeqSeq(arg0, arg1, arg2) ::= <<
+<arg0>
+<arg1>
+<arg2>
+>>
+
+If(arg0, arg1) ::= <<
+if (<arg0>) {
+    <arg1>
+}
+>>
+
+Branch(arg0, arg1, arg2) ::= <<
+if (<arg0>) {
+    <arg1>
+} else {
+    <arg2>
+}
+>>
+
+Cond(arg0, arg1, arg2, arg3) ::= <<
+if (<arg0>) {
+    <arg1>
+} else {
+    <arg2>
+}
+<arg3>
+>>
+
+Loop(arg0, arg1, arg2, arg3, arg4) ::= <<
+<arg0>
+while (true) {
+    <arg1>
+
+    if (<arg2>)
+        break;
+
+    <arg3>
+}
+<arg4>
+>>
+
+While(arg0, arg1, arg2, arg3) ::= <<
+<arg0>
+while (<arg1>) {
+    <arg2>
+}
+<arg3>
+>>
+
+Repeat(arg0, arg1, arg2, arg3) ::= <<
+<arg0>
+do {
+    <arg1>
+} while (!<arg2>);
+<arg3>
+>>
+
+Concur(arg0, arg1, arg2, count0, count1) ::= <<
+<arg0>
+Thread thread<count0> = new Thread(() -> {
+    <arg1>
+});
+
+Thread thread<count1> = new Thread(() -> {
+    <arg2>
+});
+
+thread<count0>.start();
+thread<count1>.start();
+
+try {
+    thread<count0>.join();
+    thread<count1>.join();
+} catch (InterruptedException e) {
+
+}
+>>
+
+Para(arg0, arg1, arg2, arg3, count0, count1) ::= "<Concur(arg0, arg1, arg2, count0, count1)><\n><arg3>"
+
+typeName ::= [
+    "integer": "int",
+    "floating": "float",
+    "boolean": "boolean",
+    "string": "String",
+    "object": "Object",
+    "void": "void",
+    default: key
+]
+
+defaultValue ::= [
+    "integer": "0",
+    "floating": "0.0",
+    "boolean": "false",
+    "string": "\"\"",
+    default: "null"
+]
