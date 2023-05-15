@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Configuration of output specific to particular programming language.
+ */
 public class TargetConfig {
     private final String templateFile;
     private Map<List<String>, Integer> counterConfig;
