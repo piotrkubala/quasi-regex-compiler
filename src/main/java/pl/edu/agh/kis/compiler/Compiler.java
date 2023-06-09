@@ -1,8 +1,10 @@
-package pl.edu.agh.kis;
+package pl.edu.agh.kis.compiler;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import pl.edu.agh.kis.PatternLexer;
+import pl.edu.agh.kis.PatternParser;
 import pl.edu.agh.kis.generator.Generator;
 import pl.edu.agh.kis.generator.TargetConfig;
 import pl.edu.agh.kis.model.Analyser;
@@ -14,7 +16,16 @@ import java.util.Map;
 
 import static java.util.Map.entry;
 
+/**
+ * Compiler for pattern language
+ *
+ * Given pattern source code and programming language, creates a skeleton of a program
+ * with holes which can be filled with logic by human developer.
+ */
 public class Compiler {
+    /**
+     * Programming languages available as an output of compiler
+     */
     public enum Language {
         JAVA (new TargetConfig("src/main/templates/java.stg")
                 .counterConfig(Map.ofEntries(
@@ -37,11 +48,11 @@ public class Compiler {
             this.config = config;
         }
 
-        public final TargetConfig config;
+        private final TargetConfig config;
     }
 
 
-    public static String compile(String pattern, TargetConfig config) {
+    private static String compile(String pattern, TargetConfig config) {
         CharStream stream = CharStreams.fromString(pattern);
         PatternLexer lexer = new PatternLexer(stream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -53,6 +64,12 @@ public class Compiler {
         return Generator.generate(model, config);
     }
 
+    /**
+     * Compile pattern source code
+     * @param pattern pattern source code to compile
+     * @param language output programming language
+     * @return compiled program
+     */
     public static String compile(String pattern, Language language) {
         return compile(pattern, language.config);
     }
