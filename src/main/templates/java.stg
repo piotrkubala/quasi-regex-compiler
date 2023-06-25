@@ -49,6 +49,13 @@ if (<arg0>) {
 }
 >>
 
+Alt(arg0, arg1, arg2) ::= <<
+if (<arg0>) {
+    <arg1>
+}
+<arg2>
+>>
+
 Branch(arg0, arg1, arg2) ::= <<
 if (<arg0>) {
     <arg1>
@@ -66,7 +73,7 @@ if (<arg0>) {
 <arg3>
 >>
 
-Loop(arg0, arg1, arg2, arg3, arg4) ::= <<
+Iter(arg0, arg1, arg2, arg3, arg4) ::= <<
 <arg0>
 while (true) {
     <arg1>
@@ -79,7 +86,7 @@ while (true) {
 <arg4>
 >>
 
-While(arg0, arg1, arg2, arg3) ::= <<
+Loop(arg0, arg1, arg2, arg3) ::= <<
 <arg0>
 while (<arg1>) {
     <arg2>
