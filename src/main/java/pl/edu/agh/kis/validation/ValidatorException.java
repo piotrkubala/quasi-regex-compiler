@@ -18,7 +18,7 @@ public class ValidatorException extends RuntimeException {
                     debugInfo.startLine, debugInfo.startCharacter, debugInfo.get("name"), (Integer) debugInfo.get("expected"), (Integer) debugInfo.get("got"));
             case NON_BOOLEAN_PREDICATE -> {
                 Integer predicatePosition = (Integer) debugInfo.get("predicatePosition");
-                String argPos = (predicatePosition + 1) + switch (predicatePosition + 1 % 10) {
+                String argPos = (predicatePosition + 1) + switch ((predicatePosition + 1) % 10) {
                     case 1 -> "st";
                     case 2 -> "nd";
                     case 3 -> "rd";

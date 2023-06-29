@@ -64,6 +64,9 @@ if (<arg0>) {
 }
 >>
 
+// biggest ass pull in history of ass pulls, possibly ever
+BranchRe(arg0, arg1, arg2) ::= "<arg2>"
+
 Cond(arg0, arg1, arg2, arg3) ::= <<
 if (<arg0>) {
     <arg1>
@@ -122,6 +125,8 @@ try {
 
 }
 >>
+
+ConcurRe(arg0, arg1, arg2) ::= "<arg2>"
 
 Para(arg0, arg1, arg2, arg3, count0, count1) ::= "<Concur(arg0, arg1, arg2, count0, count1)><\n><arg3>"
 

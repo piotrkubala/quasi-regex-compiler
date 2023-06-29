@@ -10,7 +10,8 @@ public class DefaultValidator implements Validator {
 
     private static final Map<String, Integer> argCounts = Map.ofEntries(
             entry("Seq", 2), entry("If", 2),
-            entry("Alt", 3), entry("Branch", 3), entry("Concur", 3), entry("SeqSeq", 3),
+            entry("Alt", 3), entry("Branch", 3), entry("BranchRe", 3),
+            entry("Concur", 3), entry("ConcurRe", 3), entry("SeqSeq", 3),
             entry("Cond", 4), entry("Para", 4), entry("Loop", 4), entry("Repeat", 4),
             entry("Iter", 5)
     );
