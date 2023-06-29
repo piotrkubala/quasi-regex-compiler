@@ -6,6 +6,7 @@ grammar Pattern;
 
 pattern :
     patternName LEFT_BRACKET (args+=pattern (DELIMITER args+=pattern)*)? RIGHT_BRACKET
+    | ATOM
     | method
     | STRING
     | EMPTY

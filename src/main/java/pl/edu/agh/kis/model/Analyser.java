@@ -34,6 +34,8 @@ public class Analyser {
 
             if (ctx.EMPTY() != null) {
                 return new EmptyNode(debugInfo);
+            } else if (ctx.ATOM() != null) {
+                return new StringNode(ctx.ATOM().getText(), debugInfo);
             } else if (ctx.STRING() != null) {
                 return new StringNode(ctx.STRING().getText()
                         .translateEscapes()
