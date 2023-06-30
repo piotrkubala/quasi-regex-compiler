@@ -5,7 +5,8 @@ import pl.edu.agh.kis.model.DebugInfo;
 public class ValidatorException extends RuntimeException {
     public enum ExceptionType {
         ARGUMENT_COUNT_MISMATCH,
-        NON_BOOLEAN_PREDICATE
+        NON_BOOLEAN_PREDICATE,
+        RETURN_PATTERN_MISMATCH
     }
 
     public ExceptionType type;
@@ -28,6 +29,8 @@ public class ValidatorException extends RuntimeException {
                 message = String.format("(%d, %d): The %s argument of '%s' must be a boolean value, a boolean method or a raw string.",
                         debugInfo.startLine, debugInfo.startCharacter, argPos, debugInfo.get("name"));
             }
+            case RETURN_PATTERN_MISMATCH -> message = String.format("(%d, %d): Pattern '%s' must appear with the corresponding pattern in sequence as Seq(%s(...), %s(...)).",
+                    debugInfo.startLine, debugInfo.startCharacter, debugInfo.get("name"), debugInfo.get("corresponding"), debugInfo.get("name"));
         }
 
         return new ValidatorException(type, message, debugInfo);

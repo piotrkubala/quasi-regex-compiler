@@ -74,7 +74,7 @@ else:
 <endif>
 >>
 
-BranchRe(arg0, arg1, arg2) ::= "<arg2>"
+BranchRe(arg0, arg1, arg2) ::= ""
 
 Cond(arg0, arg1, arg2, arg3) ::= <<
 if (<arg0>):
@@ -152,7 +152,7 @@ task<count0>.join()
 task<count1>.join()
 >>
 
-ConcurRe(arg0, arg1, arg2) ::= "<arg2>"
+ConcurRe(arg0, arg1, arg2) ::= ""
 
 Para(arg0, arg1, arg2, arg3, count0, count1) ::= "<Concur(arg0, arg1, arg2, count0, count1)><\n><arg3>"
 

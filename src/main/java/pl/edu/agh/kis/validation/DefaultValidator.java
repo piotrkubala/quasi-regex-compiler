@@ -3,7 +3,10 @@ package pl.edu.agh.kis.validation;
 import pl.edu.agh.kis.model.*;
 import static pl.edu.agh.kis.validation.ValidatorException.ExceptionType.*;
 
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
 import static java.util.Map.entry;
 
 public class DefaultValidator implements Validator {
@@ -21,6 +24,11 @@ public class DefaultValidator implements Validator {
             entry("Loop", 1), entry("Repeat", 2), entry("Iter", 2)
     );
 
+    private static final Map<String, List<String>> specialPatterns = Map.ofEntries(
+            entry("BranchRe", List.of("Branch", "Cond")),
+            entry("ConcurRe", List.of("Concur", "Para"))
+    );
+
     @Override
     public void validate(Model model) {
         visitNode(model.mainBody);
@@ -30,6 +38,33 @@ public class DefaultValidator implements Validator {
         if (node instanceof WorkflowNode) {
             String name = ((WorkflowNode) node).name;
 
+            if (specialPatterns.containsKey(name))
+            {
+                String corresponding = specialPatterns.get(name).get(0);
+                node.debugInfo.put("corresponding", corresponding);
+
+                WorkflowNode parent = (WorkflowNode) node.getParent();
+                if (parent == null || !Objects.equals(parent.name, "Seq")) // parent is not Seq
+                    throw ValidatorException.of(RETURN_PATTERN_MISMATCH, node.debugInfo);
+
+                WorkflowNode sibling = (WorkflowNode) node.getParent().getChildren().get(0);
+
+                if (sibling == null || !Objects.equals(sibling.name, corresponding)) // sibling is not the corresponding pattern
+                    throw ValidatorException.of(RETURN_PATTERN_MISMATCH, node.debugInfo);
+
+                parent.name = specialPatterns.get(name).get(1);
+
+                WorkflowNode s1 = new WorkflowNode("Seq", new DebugInfo(-1, -1));
+                s1.addChild(sibling.getChildren().get(1));
+                s1.addChild(node.getChildren().get(0));
+
+                WorkflowNode s2 = new WorkflowNode("Seq", new DebugInfo(-1, -1));
+                s2.addChild(sibling.getChildren().get(2));
+                s2.addChild(node.getChildren().get(1));
+
+                parent.children = List.of(sibling.getChildren().get(0), s1, s2, node.getChildren().get(2));
+            }
+
             Integer count = argCounts.get(name);
             node.debugInfo.put("expected", count);
             node.debugInfo.put("got", node.getChildren().size());
@@ -38,13 +73,10 @@ public class DefaultValidator implements Validator {
                 throw ValidatorException.of(ARGUMENT_COUNT_MISMATCH, node.debugInfo);
             }
 
-            node.debugInfo.remove("expected");
-            node.debugInfo.remove("got");
-
             Integer predicatePosition = predicatePositions.get(name);
-            node.debugInfo.put("predicatePosition", predicatePosition);
 
             if (predicatePosition != null) {
+                node.debugInfo.put("predicatePosition", predicatePosition);
                 Node child = node.getChildren().get(predicatePosition);
 
                 if (child instanceof WorkflowNode || child instanceof EmptyNode) {
@@ -58,8 +90,6 @@ public class DefaultValidator implements Validator {
                     ((MethodNode) child).statement = false;
                 }
             }
-
-            node.debugInfo.remove("predicatePosition");
         }
 
         for (Node child : node.getChildren()) {
