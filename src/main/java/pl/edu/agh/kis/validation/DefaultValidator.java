@@ -38,6 +38,13 @@ public class DefaultValidator implements Validator {
         if (node instanceof WorkflowNode) {
             String name = ((WorkflowNode) node).name;
 
+            Integer count = argCounts.get(name);
+            node.debugInfo.put("expected", count);
+            node.debugInfo.put("got", node.getChildren().size());
+
+            if (count != null && count != node.getChildren().size())
+                throw ValidatorException.of(ARGUMENT_COUNT_MISMATCH, node.debugInfo);
+
             if (specialPatterns.containsKey(name))
             {
                 String corresponding = specialPatterns.get(name).get(0);
@@ -65,23 +72,14 @@ public class DefaultValidator implements Validator {
                 parent.children = List.of(sibling.getChildren().get(0), s1, s2, node.getChildren().get(2));
             }
 
-            Integer count = argCounts.get(name);
-            node.debugInfo.put("expected", count);
-            node.debugInfo.put("got", node.getChildren().size());
-
-            if (count != null && count != node.getChildren().size()) {
-                throw ValidatorException.of(ARGUMENT_COUNT_MISMATCH, node.debugInfo);
-            }
-
             Integer predicatePosition = predicatePositions.get(name);
 
             if (predicatePosition != null) {
                 node.debugInfo.put("predicatePosition", predicatePosition);
                 Node child = node.getChildren().get(predicatePosition);
 
-                if (child instanceof WorkflowNode || child instanceof EmptyNode) {
+                if (child instanceof WorkflowNode || child instanceof EmptyNode)
                     throw ValidatorException.of(NON_BOOLEAN_PREDICATE, node.debugInfo);
-                }
 
                 if (child instanceof MethodNode) {
                     if (((MethodNode) child).method.returnType == Type.Void)
